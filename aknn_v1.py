@@ -6,7 +6,7 @@
 ║                                                                      ║
 ║   Author  : Aaryan — Entity Labs                                    ║
 ║   License : MIT                                                      ║
-║   Install : pip install aknn                                         ║
+║   Install : pip install aknn  will soon be in working stage                                       ║
 ║                                                                      ║
 ║   THESIS  : Intelligence is geometry, not probability.              ║
 ║             One perfect example beats one million mediocre ones.    ║
