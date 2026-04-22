@@ -4,6 +4,7 @@
 > **One perfect example beats one million mediocre ones.**
 > **The brain doesn't guess. It resonates."**
 
+> ⚠️ **Monkey Patching Applied:** Runtime patches fix specific bugs in the code. See [`aknn.ipynb`](aknn.ipynb) for details.
 ---
 
 [![Version](https://img.shields.io/badge/version-1.0-black?style=flat-square)](.)
