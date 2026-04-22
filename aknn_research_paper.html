@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AKNN: A Dual-Substrate Neuro-Manifold Architecture — Aaryan Khan</title>
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$'],['\\[','\\]']], tags: 'ams' },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ink:       #0e0e0e;
+  --ink-light: #2c2c2c;
+  --ink-muted: #5a5a5a;
+  --rule:      #c8c0b4;
+  --rule-light:#e8e2d8;
+  --accent:    #8b1a1a;
+  --accent2:   #1a3a6b;
+  --bg:        #faf8f4;
+  --bg-warm:   #f4f0e8;
+  --code-bg:   #1a1a1a;
+  --code-fg:   #e8e0cc;
+  --quantum:   #1a3a6b;
+  --hdc:       #2d5a27;
+  --meta:      #5a2d6b;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 18px; scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 1.2rem;
+  line-height: 2.0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── PAGE LAYOUT ──────────────────────────────────────────── */
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 4rem 3rem 8rem;
+}
+
+/* ── JOURNAL HEADER ──────────────────────────────────────── */
+.journal-header {
+  border-top: 3px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 0.6rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+
+/* ── TITLE BLOCK ─────────────────────────────────────────── */
+.title-block {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.paper-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1.22;
+  color: var(--ink);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+
+.paper-subtitle {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink-muted);
+  margin-bottom: 2rem;
+}
+
+.authors {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--ink-light);
+  margin-bottom: 0.4rem;
+}
+
+.affiliation {
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+  font-style: italic;
+  margin-bottom: 0.2rem;
+}
+
+.paper-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.04em;
+  margin-top: 1.2rem;
+}
+
+.doi-badge {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+  margin-top: 0.8rem;
+}
+
+/* ── ABSTRACT ────────────────────────────────────────────── */
+.abstract-box {
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--accent);
+  background: var(--bg-warm);
+  padding: 1.6rem 2rem;
+  margin: 2.5rem 0;
+  border-radius: 0 4px 4px 0;
+}
+
+.abstract-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.7rem;
+  font-weight: 500;
+}
+
+.abstract-text {
+  font-size: 1.1rem;
+  line-height: 1.9;
+  color: var(--ink-light);
+}
+
+/* ── KEYWORDS ────────────────────────────────────────────── */
+.keywords {
+  margin: 1rem 0 2.5rem;
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+}
+
+.keywords strong {
+  color: var(--ink);
+  font-style: normal;
+}
+
+.kw-tag {
+  display: inline-block;
+  border: 1px solid var(--rule);
+  padding: 0.1rem 0.5rem;
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  margin: 0.1rem 0.2rem;
+  color: var(--ink-muted);
+  background: var(--bg-warm);
+}
+
+/* ── SECTIONS ────────────────────────────────────────────── */
+.section {
+  margin-top: 3rem;
+}
+
+h2.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.9rem;
+  font-weight: 600;
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.4rem;
+  margin-bottom: 1.2rem;
+  counter-increment: section;
+}
+
+h2.section-title::before {
+  content: counter(section) ". ";
+  color: var(--accent);
+  font-weight: 400;
+}
+
+body { counter-reset: section; }
+
+h3.subsection {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+  color: var(--ink-light);
+  margin: 1.6rem 0 0.6rem;
+  font-style: italic;
+}
+
+p {
+  margin-bottom: 1rem;
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* ── FIGURES ─────────────────────────────────────────────── */
+.figure {
+  margin: 2.5rem 0;
+  text-align: center;
+}
+
+.figure svg {
+  max-width: 100%;
+  display: block;
+  margin: 0 auto;
+}
+
+.figure-caption {
+  font-size: 1.0rem;
+  color: var(--ink-muted);
+  margin-top: 0.8rem;
+  font-style: italic;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.figure-caption strong {
+  font-style: normal;
+  color: var(--ink-light);
+}
+
+/* ── MATH DISPLAY ────────────────────────────────────────── */
+.math-block {
+  background: var(--bg-warm);
+  border: 1px solid var(--rule-light);
+  border-radius: 4px;
+  padding: 1.2rem 1.8rem;
+  margin: 1.4rem 0;
+  overflow-x: auto;
+}
+
+/* ── ALGORITHM BOX ───────────────────────────────────────── */
+.algo-box {
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--accent2);
+  background: var(--bg-warm);
+  padding: 1.2rem 1.6rem;
+  margin: 2rem 0;
+  border-radius: 0 0 4px 4px;
+  font-size: 0.9rem;
+}
+
+.algo-header {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--accent2);
+  text-transform: uppercase;
+  margin-bottom: 0.8rem;
+  font-weight: 500;
+}
+
+.algo-step {
+  display: flex;
+  gap: 1rem;
+  margin: 0.25rem 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.algo-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent2);
+  min-width: 1.5rem;
+  padding-top: 0.1rem;
+  font-weight: 500;
+}
+
+/* ── INLINE CODE ─────────────────────────────────────────── */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82em;
+  background: var(--bg-warm);
+  border: 1px solid var(--rule-light);
+  padding: 0.1em 0.35em;
+  border-radius: 2px;
+  color: var(--accent);
+}
+
+/* ── TABLE ───────────────────────────────────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.0rem;
+  margin: 1.5rem 0;
+}
+
+.data-table thead tr {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.data-table th {
+  padding: 0.6rem 1rem;
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  font-weight: 400;
+}
+
+.data-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--rule-light);
+  color: var(--ink-light);
+  vertical-align: top;
+}
+
+.data-table tr:nth-child(even) td {
+  background: var(--bg-warm);
+}
+
+/* ── CALLOUT ─────────────────────────────────────────────── */
+.callout {
+  border-left: 4px solid var(--accent2);
+  padding: 0.8rem 1.2rem;
+  margin: 1.5rem 0;
+  background: #eef2f8;
+  font-size: 0.94rem;
+  color: var(--accent2);
+  font-style: italic;
+}
+
+.callout.warning {
+  border-left-color: var(--accent);
+  background: #f8eeee;
+  color: var(--accent);
+}
+
+/* ── REFERENCES ──────────────────────────────────────────── */
+.references {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+}
+
+.ref-item {
+  margin-bottom: 0.7rem;
+  padding-left: 2rem;
+  text-indent: -2rem;
+}
+
+.ref-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-right: 0.4rem;
+}
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+.page-footer {
+  margin-top: 5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--ink-muted);
+  display: flex;
+  justify-content: space-between;
+  letter-spacing: 0.05em;
+}
+
+/* ── SUBSTRATE BADGES ────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 2px;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  vertical-align: middle;
+}
+.badge-q  { background: #d8e4f0; color: var(--quantum); border: 1px solid #a8c0d8; }
+.badge-h  { background: #d8f0d8; color: var(--hdc);     border: 1px solid #a8d0a8; }
+.badge-m  { background: #f0d8f0; color: var(--meta);    border: 1px solid #d0a8d0; }
+
+/* print */
+@media print {
+  body { font-size: 11pt; }
+  .page { padding: 0; max-width: 100%; }
+  .journal-header, .page-footer { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- JOURNAL HEADER -->
+<div class="journal-header">
+  <span>Independent Research · 2026</span>
+  <span>AKNN v1.0 · Technical Report</span>
+  <span>Preprint · Not Peer Reviewed</span>
+</div>
+
+<!-- TITLE BLOCK -->
+<div class="title-block">
+  <div class="paper-title">AKNN: A Dual-Substrate Neuro-Manifold Architecture for Associative Knowledge Retrieval</div>
+  <div class="paper-subtitle">Quantum-Geometric Encoding, Hyperdimensional Computing, and Biologically-Motivated Cognitive Maintenance in a Unified Synthetic Brain</div>
+  <div class="authors">Aaryan Khan</div>
+  <div class="affiliation">Independent Researcher · Jabalpur, Madhya Pradesh, India</div>
+  <div class="affiliation">aaryankhansonu@gmail.com</div>
+  <div class="paper-meta">Submitted: 2026 &nbsp;·&nbsp; Version: 1.0 &nbsp;·&nbsp; License: MIT</div>
+  <div class="doi-badge">AKNN-2026-001</div>
+</div>
+
+<!-- ABSTRACT -->
+<div class="abstract-box">
+  <div class="abstract-label">Abstract</div>
+  <div class="abstract-text">
+    We present <strong>AKNN</strong> (Aaryan's / Associative K-Nearest-Neighbor Neural Network), a novel dual-substrate neuro-manifold architecture for associative knowledge storage and retrieval. AKNN departs from conventional deep-learning paradigms by positioning <em>intelligence as geometry, not probability</em>. The system encodes natural language into two parallel representational substrates: (1) an 8-qubit parametric quantum circuit producing PauliZ expectation signatures in a $2^8$-dimensional Hilbert space, and (2) a 10,000-dimensional bipolar Hyperdimensional Computing (HDC) vector space. Retrieval operates via manifold proximity in the quantum substrate, gated by HDC cosine similarity and a semantic coherence filter. A Hebbian plasticity layer continuously modulates memory strength, while a biologically-inspired sleep cycle performs geometric clustering, pruning, and memory crystallization. Dynamic neurogenesis auto-spawns specialist expert neurons when tag clusters exceed a density threshold. We demonstrate the system on a structured DNA knowledge base across three cortical columns—BROTHERHOOD, ARCHITECT, and ENTITY—showing stable retrieval, cross-neuron chain-of-thought construction, and valence-guided routing. AKNN provides a computationally tractable, interpretable alternative to transformer-based retrieval for constrained and embedded environments.
+  </div>
+</div>
+
+<div class="keywords">
+  <strong>Keywords: </strong>
+  <span class="kw-tag">neuro-manifold</span>
+  <span class="kw-tag">hyperdimensional computing</span>
+  <span class="kw-tag">quantum encoding</span>
+  <span class="kw-tag">associative memory</span>
+  <span class="kw-tag">Hebbian learning</span>
+  <span class="kw-tag">cortical columns</span>
+  <span class="kw-tag">knowledge retrieval</span>
+  <span class="kw-tag">IIT proxy</span>
+  <span class="kw-tag">neurogenesis</span>
+  <span class="kw-tag">cognitive architecture</span>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 1 ═════ -->
+<div class="section">
+<h2 class="section-title">Introduction</h2>
+
+<p>Modern language understanding is dominated by transformer architectures trained via gradient descent on billions of token pairs. While empirically powerful, such systems exhibit several fundamental limitations: they are opaque in their retrieval mechanics, require enormous computational resources, cannot easily incorporate new knowledge without retraining, and offer no principled measure of <em>confidence</em> grounded in the geometry of the learned representation. They guess; they do not resonate.</p>
+
+<p>AKNN proposes a radically different philosophy rooted in three axioms:</p>
+
+<p><strong>Axiom I.</strong> <em>Intelligence is geometry, not probability.</em> A concept is a point in a high-dimensional space. Understanding is proximity. Retrieval is gravitational pull toward the nearest well-formed coordinate.</p>
+
+<p><strong>Axiom II.</strong> <em>One perfect example beats one million mediocre ones.</em> A single high-valence, high-precision memory at the correct manifold coordinate outperforms a statistical aggregate derived from noisy data.</p>
+
+<p><strong>Axiom III.</strong> <em>The brain does not guess. It resonates.</em> A query either finds geometric resonance with a stored memory—locking attention and triggering Hebbian reinforcement—or it returns dissonance, an honest admission of manifold sparsity.</p>
+
+<p>These axioms motivate a dual-substrate design. Quantum circuits, with their native Hilbert-space geometry and entanglement structure, provide a compact and semantically rich coordinate system for memories. Hyperdimensional Computing provides a complementary, efficiently-computable similarity measure at 10,000 dimensions. The combination yields a system that is simultaneously interpretable, incrementally updatable, and capable of biologically-plausible learning dynamics.</p>
+
+<p>This paper makes the following contributions:</p>
+
+<p><strong>C1.</strong> A dual-substrate encoding pipeline combining grammar-aware quantum angle embedding with HDC positional superposition encoding.</p>
+<p><strong>C2.</strong> A K-blend manifold interpolation engine producing weighted quantum thought signatures across the $K=3$ nearest memory cells.</p>
+<p><strong>C3.</strong> A semantic resonance gate preventing logically incoherent synthesis via subject-predicate HDC similarity.</p>
+<p><strong>C4.</strong> A biologically-motivated cognitive maintenance cycle implementing Ebbinghaus decay, geometric clustering, and memory crystallization.</p>
+<p><strong>C5.</strong> A dynamic neurogenesis mechanism that auto-spawns specialist cortical columns from tag-density signals.</p>
+<p><strong>C6.</strong> An IIT-proxy confidence metric $\Phi$ computed from PauliZ variance, providing a principled scalar measure of informational integration.</p>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 2 ═════ -->
+<div class="section">
+<h2 class="section-title">Related Work</h2>
+
+<p>AKNN draws on and differs from several lines of prior work. Sparse distributed memory (Kanerva, 1988) [1] first formalized the idea of high-dimensional binary spaces for content-addressable memory, anticipating the HDC substrate. Hyperdimensional computing (Kanerva, 2009; Rachkovskij &amp; Kussul, 2001) [2,3] has demonstrated that bipolar vectors of dimensionality $\sim 10^4$ support robust binding, bundling, and similarity operations. AKNN adopts HDC's bipolar superposition encoding directly.</p>
+
+<p>In the quantum computing literature, variational quantum circuits (VQCs) have been applied to classification and embedding tasks (Schuld et al., 2020; Biamonte et al., 2017) [4,5]. AKNN's quantum substrate uses <code>StronglyEntanglingLayers</code> (Pérez-Salinas et al., 2020) [6] not as a classifier but as a geometry-preserving encoder whose PauliZ output provides coordinates in $[-1,1]^8$.</p>
+
+<p>Integrated Information Theory (Tononi, 2004) [7] proposes $\Phi$ as a measure of consciousness tied to informational integration across system partitions. AKNN adopts a computationally tractable proxy: the normalized variance of the PauliZ expectation vector, which captures the degree to which the quantum state distributes information across qubits.</p>
+
+<p>Hebbian learning (Hebb, 1949) [8], as formalized by the rule "neurons that fire together wire together," provides the theoretical basis for AKNN's plasticity update. The Ebbinghaus forgetting curve (1885) [9] motivates the exponential decay with differential rates for connected versus isolated memories.</p>
+
+<p>Unlike retrieval-augmented generation (RAG) systems (Lewis et al., 2020) [10] which use dense vector databases with a frozen language model as a retrieval index, AKNN's manifold <em>is</em> the knowledge—there is no separate generative model. The retrieved memory is the answer, structured and synthesized by the cognitive pipeline itself.</p>
+</div>
+
+<!-- ═══════════════════════════════════════ SECTION 3 ═════ -->
+<div class="section">
+<h2 class="section-title">Architecture</h2>
+
+<h3 class="subsection">3.1 System Overview</h3>
+
+<p>AKNN consists of five primary subsystems operating in a pipeline during both grafting (write) and querying (read) operations. Figure 1 illustrates the full architecture.</p>
+
+<!-- FIGURE 1: Full architecture diagram -->
+<div class="figure">
+<svg viewBox="0 0 820 520" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#2c2c2c"/>
+    </marker>
+    <marker id="arr-b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1a3a6b"/>
+    </marker>
+    <marker id="arr-g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#2d5a27"/>
+    </marker>
+    <filter id="shadow">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Input -->
+  <rect x="10" y="220" width="120" height="50" rx="4" fill="#0e0e0e" filter="url(#shadow)"/>
+  <text x="70" y="241" fill="#faf8f4" font-size="9" text-anchor="middle" font-weight="500">STIMULUS</text>
+  <text x="70" y="256" fill="#c8c0b4" font-size="8" text-anchor="middle">"natural language"</text>
+
+  <!-- Arrow input → encoder -->
+  <line x1="130" y1="245" x2="168" y2="245" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Dual Encoder Box -->
+  <rect x="170" y="160" width="160" height="170" rx="4" fill="#f4f0e8" stroke="#c8c0b4" stroke-width="1" filter="url(#shadow)"/>
+  <text x="250" y="178" font-size="8.5" text-anchor="middle" fill="#5a5a5a" letter-spacing="1">DUAL ENCODER</text>
+
+  <!-- Quantum sub-box -->
+  <rect x="182" y="186" width="136" height="58" rx="3" fill="#d8e4f0" stroke="#a8c0d8" stroke-width="1"/>
+  <text x="250" y="200" font-size="8" text-anchor="middle" fill="#1a3a6b" font-weight="500">QUANTUM SUBSTRATE</text>
+  <text x="250" y="213" font-size="7" text-anchor="middle" fill="#1a3a6b">Grammar-POS Encoding</text>
+  <text x="250" y="225" font-size="7" text-anchor="middle" fill="#1a3a6b">AngleEmbed → StrongEntangle</text>
+  <text x="250" y="237" font-size="7" text-anchor="middle" fill="#1a3a6b">⟨Z⟩ ∈ [−1,1]⁸</text>
+
+  <!-- HDC sub-box -->
+  <rect x="182" y="254" width="136" height="58" rx="3" fill="#d8f0d8" stroke="#a8d0a8" stroke-width="1"/>
+  <text x="250" y="268" font-size="8" text-anchor="middle" fill="#2d5a27" font-weight="500">HDC SUBSTRATE</text>
+  <text x="250" y="281" font-size="7" text-anchor="middle" fill="#2d5a27">Char-Level HV Binding</text>
+  <text x="250" y="293" font-size="7" text-anchor="middle" fill="#2d5a27">Positional Superposition</text>
+  <text x="250" y="305" font-size="7" text-anchor="middle" fill="#2d5a27">v ∈ {−1,+1}¹⁰⁰⁰⁰</text>
+
+  <!-- Arrows to Neuron Banks -->
+  <line x1="330" y1="215" x2="378" y2="215" stroke="#1a3a6b" stroke-width="1.5" marker-end="url(#arr-b)"/>
+  <line x1="330" y1="283" x2="378" y2="283" stroke="#2d5a27" stroke-width="1.5" marker-end="url(#arr-g)"/>
+
+  <!-- Neuron Banks -->
+  <rect x="380" y="130" width="130" height="310" rx="4" fill="#faf8f4" stroke="#c8c0b4" stroke-width="1" filter="url(#shadow)"/>
+  <text x="445" y="150" font-size="8.5" text-anchor="middle" fill="#5a5a5a" letter-spacing="1">CORTICAL COLUMNS</text>
+
+  <!-- BROTHERHOOD -->
+  <rect x="392" y="158" width="106" height="66" rx="3" fill="#fff8f0" stroke="#d4a070" stroke-width="1"/>
+  <text x="445" y="172" font-size="8" text-anchor="middle" fill="#8b4010" font-weight="500">BROTHERHOOD</text>
+  <text x="445" y="184" font-size="6.5" text-anchor="middle" fill="#8b4010">survival · loyalty · grind</text>
+  <text x="445" y="196" font-size="6.5" text-anchor="middle" fill="#8b4010">MemoryCell[]</text>
+  <text x="445" y="207" font-size="6.5" text-anchor="middle" fill="#8b4010">Hebbian | Valence | Tags</text>
+  <text x="445" y="218" font-size="6.5" text-anchor="middle" fill="#8b4010">Crystal | Contradiction</text>
+
+  <!-- ARCHITECT -->
+  <rect x="392" y="234" width="106" height="66" rx="3" fill="#f0f4ff" stroke="#7090d4" stroke-width="1"/>
+  <text x="445" y="248" font-size="8" text-anchor="middle" fill="#1a3a6b" font-weight="500">ARCHITECT</text>
+  <text x="445" y="260" font-size="6.5" text-anchor="middle" fill="#1a3a6b">logic · math · code</text>
+  <text x="445" y="272" font-size="6.5" text-anchor="middle" fill="#1a3a6b">MemoryCell[]</text>
+  <text x="445" y="283" font-size="6.5" text-anchor="middle" fill="#1a3a6b">Hebbian | Valence | Tags</text>
+  <text x="445" y="294" font-size="6.5" text-anchor="middle" fill="#1a3a6b">Crystal | Contradiction</text>
+
+  <!-- ENTITY -->
+  <rect x="392" y="310" width="106" height="66" rx="3" fill="#f8f0ff" stroke="#a070d4" stroke-width="1"/>
+  <text x="445" y="324" font-size="8" text-anchor="middle" fill="#5a2d6b" font-weight="500">ENTITY</text>
+  <text x="445" y="336" font-size="6.5" text-anchor="middle" fill="#5a2d6b">void · consciousness</text>
+  <text x="445" y="348" font-size="6.5" text-anchor="middle" fill="#5a2d6b">MemoryCell[]</text>
+  <text x="445" y="359" font-size="6.5" text-anchor="middle" fill="#5a2d6b">Hebbian | Valence | Tags</text>
+  <text x="445" y="370" font-size="6.5" text-anchor="middle" fill="#5a2d6b">Crystal | Contradiction</text>
+
+  <!-- Neurogenesis badge -->
+  <rect x="392" y="386" width="106" height="26" rx="3" fill="#e8f4e8" stroke="#a8c8a8" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="445" y="402" font-size="7" text-anchor="middle" fill="#2d5a27">+ NEUROGENESIS →</text>
+
+  <!-- Arrows Neuron Banks → Cognitive Pipeline -->
+  <line x1="510" y1="285" x2="548" y2="285" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Cognitive Pipeline -->
+  <rect x="550" y="130" width="140" height="310" rx="4" fill="#faf8f4" stroke="#c8c0b4" stroke-width="1" filter="url(#shadow)"/>
+  <text x="620" y="150" font-size="8.5" text-anchor="middle" fill="#5a5a5a" letter-spacing="1">COGNITIVE PIPELINE</text>
+
+  <rect x="562" y="158" width="116" height="34" rx="3" fill="#f4f0e8" stroke="#c8c0b4"/>
+  <text x="620" y="172" font-size="7.5" text-anchor="middle" fill="#2c2c2c" font-weight="500">Φ Gate</text>
+  <text x="620" y="183" font-size="6.5" text-anchor="middle" fill="#5a5a5a">Phi floor | dissonance check</text>
+
+  <rect x="562" y="202" width="116" height="34" rx="3" fill="#f4f0e8" stroke="#c8c0b4"/>
+  <text x="620" y="216" font-size="7.5" text-anchor="middle" fill="#2c2c2c" font-weight="500">Manifold Blend K=3</text>
+  <text x="620" y="227" font-size="6.5" text-anchor="middle" fill="#5a5a5a">Inverse-dist weighted avg</text>
+
+  <rect x="562" y="246" width="116" height="34" rx="3" fill="#f4f0e8" stroke="#c8c0b4"/>
+  <text x="620" y="260" font-size="7.5" text-anchor="middle" fill="#2c2c2c" font-weight="500">Semantic Gate</text>
+  <text x="620" y="271" font-size="6.5" text-anchor="middle" fill="#5a5a5a">Subj-Pred HDC similarity</text>
+
+  <rect x="562" y="290" width="116" height="34" rx="3" fill="#f4f0e8" stroke="#c8c0b4"/>
+  <text x="620" y="304" font-size="7.5" text-anchor="middle" fill="#2c2c2c" font-weight="500">CCE Chain</text>
+  <text x="620" y="315" font-size="6.5" text-anchor="middle" fill="#5a5a5a">HDC-anchored walk depth=5</text>
+
+  <rect x="562" y="334" width="116" height="34" rx="3" fill="#f4f0e8" stroke="#c8c0b4"/>
+  <text x="620" y="348" font-size="7.5" text-anchor="middle" fill="#2c2c2c" font-weight="500">Hebbian Update</text>
+  <text x="620" y="359" font-size="6.5" text-anchor="middle" fill="#5a5a5a">h ← h + η(1−h)Φ</text>
+
+  <rect x="562" y="378" width="116" height="34" rx="3" fill="#d8e4f0" stroke="#a8c0d8"/>
+  <text x="620" y="392" font-size="7.5" text-anchor="middle" fill="#1a3a6b" font-weight="500">Geo Map + Episodic</text>
+  <text x="620" y="403" font-size="6.5" text-anchor="middle" fill="#1a3a6b">Hilbert addr | cache</text>
+
+  <!-- Pipeline internal arrows -->
+  <line x1="620" y1="192" x2="620" y2="201" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="620" y1="236" x2="620" y2="245" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="620" y1="280" x2="620" y2="289" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="620" y1="324" x2="620" y2="333" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+  <line x1="620" y1="368" x2="620" y2="377" stroke="#aaa" stroke-width="1" marker-end="url(#arr)"/>
+
+  <!-- Output arrow -->
+  <line x1="690" y1="285" x2="728" y2="285" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- Output box -->
+  <rect x="730" y="240" width="82" height="90" rx="4" fill="#0e0e0e" filter="url(#shadow)"/>
+  <text x="771" y="258" fill="#faf8f4" font-size="7.5" text-anchor="middle" font-weight="500">QueryResult</text>
+  <text x="771" y="272" fill="#c8c0b4" font-size="6.5" text-anchor="middle">answer</text>
+  <text x="771" y="283" fill="#c8c0b4" font-size="6.5" text-anchor="middle">Φ · attn_lock</text>
+  <text x="771" y="294" fill="#c8c0b4" font-size="6.5" text-anchor="middle">neuron · chain</text>
+  <text x="771" y="305" fill="#c8c0b4" font-size="6.5" text-anchor="middle">is_crystal</text>
+  <text x="771" y="316" fill="#c8c0b4" font-size="6.5" text-anchor="middle">geo_map</text>
+
+  <!-- Sleep cycle annotation -->
+  <rect x="380" y="58" width="220" height="38" rx="4" fill="#fff8e8" stroke="#d0b060" stroke-width="1" stroke-dasharray="4,2"/>
+  <text x="490" y="74" font-size="7.5" text-anchor="middle" fill="#8b6010" font-weight="500">SLEEP CYCLE (offline)</text>
+  <text x="490" y="87" font-size="7" text-anchor="middle" fill="#8b6010">Ebbinghaus decay · cluster merge · prune · crystallize</text>
+  <line x1="490" y1="96" x2="490" y2="128" stroke="#d0b060" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr)"/>
+
+  <!-- Title -->
+  <text x="410" y="500" font-size="9" text-anchor="middle" fill="#5a5a5a" font-style="italic">Figure 1. Complete AKNN v1.0 architecture. Dual substrates feed cortical columns; the cognitive pipeline gates, blends, and synthesizes the response.</text>
+</svg>
+<div class="figure-caption"><strong>Figure 1.</strong> Complete AKNN v1.0 system architecture. Stimulus flows through a dual-substrate encoder (quantum + HDC) into cortical column neurons. The cognitive pipeline applies Φ gating, K=3 manifold blending, semantic resonance checking, CCE chain construction, and Hebbian update before emitting a structured QueryResult. An offline sleep cycle performs maintenance independently of the query path.</div>
+</div>
+
+<h3 class="subsection">3.2 Dual-Substrate Encoding</h3>
+
+<p>Every piece of text—whether a memory being grafted or a query being posed—is encoded simultaneously into two geometric substrates that capture complementary aspects of meaning.</p>
+
+<p><strong>Substrate 1: Quantum Angle Embedding.</strong> The encoder first applies a grammar-aware part-of-speech tagging step, assigning tokens to four roles: subject, verb, object, and modifier. Character sequences within each role are mapped to angles via a deterministic bijection:</p>
+
+<div class="math-block">
+$$\theta(c) = \frac{\text{index}(c)}{|\Sigma| - 1} \cdot 2\pi, \quad c \in \Sigma = \{\text{a}...\text{z}, \text{ }\}$$
+</div>
+
+<p>Digits and punctuation have separate mappings. The grammar pass assigns mean character angles per role to designated qubit pairs: subject $\to (q_0, q_1)$, verb $\to (q_2, q_3)$, object $\to (q_4, q_5)$, modifier $\to (q_6, q_7)$. A second positional-compression pass buckets character angles uniformly across the 8 qubits. The final angle vector is a convex combination:</p>
+
+<div class="math-block">
+$$\boldsymbol{\theta}_{\text{enc}} = 0.6\,\boldsymbol{\theta}_{\text{grammar}} + 0.4\,\boldsymbol{\theta}_{\text{positional}} \in \mathbb{R}^8$$
+</div>
+
+<p>This vector is embedded into the quantum circuit via <code>AngleEmbedding</code> with $Y$-rotation gates, followed by grammar-structure CNOT entanglement (subject$\to$verb, verb$\to$object, object$\to$modifier, plus long-range and mid-register links), and $L=5$ layers of <code>StronglyEntanglingLayers</code> with trainable weights $\mathbf{W}$:</p>
+
+<div class="math-block">
+$$q\text{-sig}(s) = \langle\mathbf{Z}\rangle = \left[\langle Z_i \rangle\right]_{i=0}^{7} = \mathcal{C}(\boldsymbol{\theta}_{\text{enc}}(s), \mathbf{W}) \in [-1,1]^8$$
+</div>
+
+<p><strong>Substrate 2: Hyperdimensional Computing (HDC).</strong> Each character $c$ is assigned a deterministic pseudo-random bipolar vector $\mathbf{v}_c \in \{-1,+1\}^{10000}$ seeded by $\text{abs}(\text{hash}(c)) \bmod 2^{31}$. Positional vectors $\mathbf{p}_k$ are generated by rolling $\mathbf{v}_{p_k}$ by $k$ positions. Character vectors within a word are bound and summed:</p>
+
+<div class="math-block">
+$$\mathbf{h}_{\text{word}} = \text{sgn}\left(\sum_{i} \mathbf{v}_{c_i} \odot \mathbf{p}_i\right)$$
+</div>
+
+<p>Word vectors are bundled across the sentence via majority vote, producing a single $10000$-dimensional bipolar signature $\mathbf{h}(s) \in \{-1,+1\}^{10000}$. Similarity is cosine distance:</p>
+
+<div class="math-block">
+$$\text{sim}_{\text{HDC}}(\mathbf{a}, \mathbf{b}) = \frac{\mathbf{a}^\top \mathbf{b}}{\|\mathbf{a}\|\|\mathbf{b}\|}$$
+</div>
+
+<h3 class="subsection">3.3 Memory Cell and Cortical Columns</h3>
+
+<p>A <strong>MemoryCell</strong> $m$ stores:</p>
+
+$$m = \left(s_m,\; \mathbf{q}_m,\; \mathbf{h}_m,\; h_m,\; v_m,\; \mathcal{T}_m,\; n_m,\; \kappa_m\right)$$
+
+<p>where $s_m$ is the source text, $\mathbf{q}_m \in [-1,1]^8$ is the quantum signature, $\mathbf{h}_m \in \{-1,+1\}^{10000}$ is the HDC signature, $h_m \in [0,\infty)$ is the Hebbian multiplier, $v_m \in [-1,1]$ is the emotional valence, $\mathcal{T}_m$ is the tag set, $n_m$ is the access count, and $\kappa_m \in \{0,1\}$ is the crystal flag.</p>
+
+<p>Memories are partitioned into <strong>Neurons</strong> (cortical columns), each representing a coherent expert domain. The default architecture has three neurons: BROTHERHOOD (social, survival), ARCHITECT (logic, systems), and ENTITY (philosophy, existence). Additional specialist neurons spawn automatically via neurogenesis.</p>
+
+<h3 class="subsection">3.4 The Φ Metric — IIT Proxy</h3>
+
+<p>Before any retrieval, AKNN computes a proxy for integrated information $\Phi$ (Tononi, 2004) from the quantum state:</p>
+
+<div class="math-block">
+$$\Phi(s) = \min\left(\text{Var}\left(\langle \mathbf{Z}\rangle(s)\right),\; 1.0\right) = \min\left(\frac{1}{N}\sum_{i=0}^{N-1}\left(\langle Z_i\rangle - \bar{Z}\right)^2,\; 1.0\right)$$
+</div>
+
+<p>When the PauliZ expectations are uniformly distributed across qubits, variance—and hence $\Phi$—is high, indicating that the circuit has spread information across all qubits (integration). When they collapse to a single constant, $\Phi \to 0$, indicating a trivial, non-informative state. Retrieval is gated: if $\Phi < \Phi_{\min} = 0.04$, the system returns DISSONANCE rather than a low-confidence answer.</p>
+
+<div class="callout">
+<strong>Design Rationale:</strong> The Φ gate implements epistemic honesty. Rather than always returning the nearest neighbor regardless of encoding quality, AKNN declines to answer when the stimulus fails to produce sufficient informational integration in the quantum substrate.
+</div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section">
+<h2 class="section-title">Retrieval and Manifold Interpolation</h2>
+
+<h3 class="subsection">4.1 K-Nearest Search</h3>
+
+<p>For a query stimulus $q$, the system searches all neurons. For each MemoryCell $m$, the raw quantum distance and effective distance are:</p>
+
+<div class="math-block">
+$$d_{\text{raw}}(q, m) = \left\|\mathbf{q}(q) - \mathbf{q}_m\right\|_2$$
+$$d_{\text{eff}}(q, m) = \frac{d_{\text{raw}}(q, m)}{\max(h_m, 10^{-2})} \cdot \begin{cases}0.5 & \kappa_m = 1 \text{ (crystal)}\\ 1.0 & \text{otherwise}\end{cases} - \rho_m \cdot 0.05$$
+</div>
+
+<p>where $\rho_m = \max(0, 1 - \Delta t_m \cdot 10^{-3})$ is a recency bonus. Crystal memories receive a $2\times$ proximity advantage reflecting their consolidated status. The system returns the $K=3$ cells with lowest effective distance across all neurons, producing the candidate set $\mathcal{K} = \{(m_1, d_1), (m_2, d_2), (m_3, d_3)\}$.</p>
+
+<h3 class="subsection">4.2 Manifold Interpolation</h3>
+
+<p>Rather than returning only the single nearest neighbor, AKNN blends the top-$K$ quantum signatures into a unified <em>Quantum Thought</em> $\tilde{\mathbf{q}}$:</p>
+
+<div class="math-block">
+$$w_k = \frac{1/d_k}{\sum_{j=1}^K 1/d_j}, \qquad \tilde{\mathbf{q}} = \sum_{k=1}^K w_k \, \mathbf{q}_{m_k}$$
+</div>
+
+<p>The average attention score is:</p>
+
+<div class="math-block">
+$$\bar{a} = \frac{1}{K}\sum_{k=1}^K \frac{1}{1 + d_k}$$
+</div>
+
+<p>This blending operation is analogous to a weighted centroid in the manifold—the system's "thought" is the geometric mean of the $K$ most resonant memories. Figure 2 illustrates the K=3 blending geometry.</p>
+
+<!-- FIGURE 2: K-Blend Geometry -->
+<div class="figure">
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+  <defs>
+    <radialGradient id="qspace" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e8f0f8" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#f4f0e8" stop-opacity="0.2"/>
+    </radialGradient>
+    <marker id="arr2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#1a3a6b"/>
+    </marker>
+    <marker id="arr3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#8b1a1a"/>
+    </marker>
+  </defs>
+
+  <!-- Manifold background -->
+  <ellipse cx="260" cy="170" rx="220" ry="150" fill="url(#qspace)" stroke="#c8c0b4" stroke-width="1"/>
+  <text x="260" y="32" font-size="8.5" text-anchor="middle" fill="#5a5a5a" letter-spacing="1">QUANTUM MANIFOLD ℝ⁸ (projected to ℝ²)</text>
+
+  <!-- Grid lines (manifold structure) -->
+  <path d="M80,100 Q180,80 260,170 Q340,260 440,240" stroke="#c8c0b4" stroke-width="0.5" fill="none"/>
+  <path d="M80,200 Q180,160 260,170 Q340,180 440,160" stroke="#c8c0b4" stroke-width="0.5" fill="none"/>
+  <path d="M130,60 Q200,120 260,170 Q320,220 380,280" stroke="#c8c0b4" stroke-width="0.5" fill="none"/>
+  <path d="M220,50 Q240,110 260,170 Q280,230 300,290" stroke="#c8c0b4" stroke-width="0.5" fill="none"/>
+
+  <!-- Memory cells K=3 -->
+  <!-- m1 -->
+  <circle cx="190" cy="125" r="18" fill="#d8e4f0" stroke="#1a3a6b" stroke-width="1.5"/>
+  <text x="190" y="121" font-size="7" text-anchor="middle" fill="#1a3a6b" font-weight="500">m₁</text>
+  <text x="190" y="132" font-size="6.5" text-anchor="middle" fill="#1a3a6b">d=0.21</text>
+  <text x="190" y="154" font-size="7" text-anchor="middle" fill="#5a5a5a" font-style="italic">ARCHITECT</text>
+
+  <!-- m2 -->
+  <circle cx="310" cy="110" r="16" fill="#d8e4f0" stroke="#1a3a6b" stroke-width="1.5"/>
+  <text x="310" y="106" font-size="7" text-anchor="middle" fill="#1a3a6b" font-weight="500">m₂</text>
+  <text x="310" y="117" font-size="6.5" text-anchor="middle" fill="#1a3a6b">d=0.34</text>
+  <text x="310" y="134" font-size="7" text-anchor="middle" fill="#5a5a5a" font-style="italic">ENTITY</text>
+
+  <!-- m3 -->
+  <circle cx="225" cy="220" r="14" fill="#d8e4f0" stroke="#1a3a6b" stroke-width="1.5"/>
+  <text x="225" y="216" font-size="7" text-anchor="middle" fill="#1a3a6b" font-weight="500">m₃</text>
+  <text x="225" y="227" font-size="6.5" text-anchor="middle" fill="#1a3a6b">d=0.47</text>
+  <text x="225" y="243" font-size="7" text-anchor="middle" fill="#5a5a5a" font-style="italic">BROTHERHOOD</text>
+
+  <!-- Query point -->
+  <circle cx="248" cy="158" r="9" fill="#8b1a1a"/>
+  <text x="248" y="154" font-size="7" text-anchor="middle" fill="white" font-weight="500">Q</text>
+  <text x="248" y="176" font-size="7" text-anchor="middle" fill="#8b1a1a" font-style="italic">stimulus</text>
+
+  <!-- Blended thought -->
+  <circle cx="240" cy="148" r="13" fill="none" stroke="#8b1a1a" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <circle cx="240" cy="148" r="5" fill="#f0d0d0" stroke="#8b1a1a" stroke-width="1"/>
+  <text x="240" y="125" font-size="7" text-anchor="middle" fill="#8b1a1a">q̃ blended</text>
+
+  <!-- Distance lines from Q to memories -->
+  <line x1="248" y1="158" x2="202" y2="133" stroke="#1a3a6b" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="248" y1="158" x2="297" y2="119" stroke="#1a3a6b" stroke-width="1" stroke-dasharray="3,2"/>
+  <line x1="248" y1="158" x2="231" y2="209" stroke="#1a3a6b" stroke-width="1" stroke-dasharray="3,2"/>
+
+  <!-- Weight arrows from memories to blend -->
+  <line x1="193" y1="130" x2="234" y2="148" stroke="#1a3a6b" stroke-width="2" marker-end="url(#arr2)"/>
+  <line x1="299" y1="115" x2="250" y2="147" stroke="#1a3a6b" stroke-width="1.5" marker-end="url(#arr2)"/>
+  <line x1="228" y1="209" x2="239" y2="161" stroke="#1a3a6b" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+  <!-- Weight labels -->
+  <text x="206" y="138" font-size="7.5" fill="#1a3a6b" font-weight="500">w₁=0.52</text>
+  <text x="265" y="125" font-size="7" fill="#1a3a6b">w₂=0.32</text>
+  <text x="226" y="190" font-size="7" fill="#1a3a6b">w₃=0.16</text>
+
+  <!-- Analogy annotation -->
+  <rect x="440" y="100" width="165" height="90" rx="4" fill="#f0f4ff" stroke="#a8c0d8" stroke-width="1"/>
+  <text x="522" y="115" font-size="8" text-anchor="middle" fill="#1a3a6b" font-weight="500">ANALOGICAL MIDPOINT</text>
+  <text x="522" y="129" font-size="7" text-anchor="middle" fill="#5a5a5a">Cross-neuron analogy:</text>
+  <text x="522" y="142" font-size="7.5" text-anchor="middle" fill="#1a3a6b" font-style="italic">q_analogy = (q_A + q_B) / 2</text>
+  <text x="522" y="157" font-size="7" text-anchor="middle" fill="#5a5a5a">geometric midpoint of</text>
+  <text x="522" y="170" font-size="7" text-anchor="middle" fill="#5a5a5a">two cross-neuron memories</text>
+
+  <!-- Caption -->
+  <text x="320" y="315" font-size="8.5" text-anchor="middle" fill="#5a5a5a" font-style="italic">Figure 2. K=3 manifold blending. Weights are inverse-distance normalized. The blended quantum thought q̃ is the weighted centroid.</text>
+</svg>
+<div class="figure-caption"><strong>Figure 2.</strong> K=3 manifold interpolation. The query $Q$ is encoded to a point in the projected quantum manifold. The three nearest memory cells receive inverse-distance weights $w_1 > w_2 > w_3$. Their quantum signatures are averaged into the blended thought $\tilde{\mathbf{q}}$, which represents the system's "point of resonance" in Hilbert space. Cross-neuron blending enables analogical reasoning at the geometric midpoint.</div>
+</div>
+
+<h3 class="subsection">4.3 Semantic Resonance Gate</h3>
+
+<p>A candidate answer $m^*$ passes the semantic gate iff its subject-predicate coherence with the stimulus exceeds a threshold. The gate computes:</p>
+
+<div class="math-block">
+$$\sigma(q, m^*) = \frac{1}{2}\left[\text{sim}_{\text{HDC}}\left(\mathbf{h}_{\text{subj}(q) \cup \text{subj}(m^*)},\, \mathbf{h}_{\text{verb}(m^*) \cup \text{obj}(m^*)}\right) + \text{sim}_{\text{HDC}}\left(\mathbf{h}(q), \mathbf{h}(m^*)\right)\right]$$
+</div>
+
+<div class="math-block">
+$$\text{pass}(q, m^*) = \mathbf{1}\left[\sigma(q, m^*) \geq \sigma_{\min}\right], \quad \sigma_{\min} = 0.25$$
+</div>
+
+<p>This gate prevents what we term <em>Mad Libs synthesis</em>—the retrieval of a topically nearby but logically incoherent response. If the gate rejects the candidate, the system returns SEMANTIC DISSONANCE rather than output nonsense.</p>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section">
+<h2 class="section-title">Hebbian Plasticity and Cognitive Maintenance</h2>
+
+<h3 class="subsection">5.1 Hebbian Learning Rule</h3>
+
+<p>On each successful resonance, the accessed memory's Hebbian multiplier is updated by:</p>
+
+<div class="math-block">
+$$h_m \leftarrow h_m + \eta\,(1 - h_m)\,\Phi, \qquad \eta = 0.15$$
+</div>
+
+<p>This is a bounded Hebbian rule: the multiplier asymptotically approaches 1.0, with update magnitude proportional to $\Phi$—high-confidence retrievals produce stronger consolidation. When $n_m \geq 8$ (the crystallization threshold), the memory is flagged as $\kappa_m = 1$ (crystal), receiving a $2\times$ distance advantage in all future searches.</p>
+
+<h3 class="subsection">5.2 Ebbinghaus Forgetting Curve</h3>
+
+<p>During the offline sleep cycle, all memories decay exponentially:</p>
+
+<div class="math-block">
+$$h_m \leftarrow \max\left(0,\; h_m - \lambda_m\right), \qquad \lambda_m = \begin{cases}\lambda_{\text{slow}} = 0.0005 & \text{if } |\mathcal{C}_m| > 0 \text{ (connected)}\\ \lambda_{\text{fast}} = 0.002 & \text{otherwise}\end{cases}$$
+</div>
+
+<p>Connected memories (those with cross-neuron references) decay $4\times$ more slowly, modeling the consolidating effect of associative context. Memories falling below the death threshold $h_m < 0.85$ with zero access count are pruned.</p>
+
+<h3 class="subsection">5.3 Geometric Clustering and Crystallization</h3>
+
+<p>The sleep cycle also performs geometric consolidation. Memory pairs within the same neuron whose quantum distance falls below $d_{\text{merge}} = 0.15$ are merged: tags are unioned, access counts accumulated, and the combined cell crystallized:</p>
+
+<div class="math-block">
+$$\text{if } \left\|\mathbf{q}_{m_i} - \mathbf{q}_{m_j}\right\|_2 < 0.15 \;\Rightarrow\; m_i \leftarrow \text{merge}(m_i, m_j),\; \kappa_{m_i} = 1$$
+</div>
+
+<p>This operation reduces manifold noise, increases the Crystallization-to-Instance Ratio (CIR), and improves retrieval precision for frequently co-activated memory pairs.</p>
+
+<h3 class="subsection">5.4 Dynamic Neurogenesis</h3>
+
+<p>After each graft, the system checks whether any tag $t \in \mathcal{T}_m$ has accumulated $\geq N_{\text{genesis}} = 8$ associated memories spread across $\geq 2$ neurons. If so, a specialist neuron is spawned with name $t.\text{upper}()$ and all matching memories are migrated:</p>
+
+<div class="math-block">
+$$\text{if } \left|\bigcup_{n \in \mathcal{N}} \{m \in n : t \in \mathcal{T}_m\}\right| \geq N_{\text{genesis}} \;\wedge\; \left|\{n \in \mathcal{N} : \exists m \in n, t \in \mathcal{T}_m\}\right| \geq 2$$
+$$\Rightarrow \text{spawn neuron}\; t.\text{upper}()$$
+</div>
+
+<p>This mirrors biological cortical column specialization: regions of the manifold that grow sufficiently dense and cross-neuron are carved out into dedicated expert columns.</p>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section">
+<h2 class="section-title">Cognitive Pipeline and Chain-of-Causal-Effect</h2>
+
+<h3 class="subsection">6.1 Full Query Pipeline</h3>
+
+<p>Figure 3 illustrates the complete sequential query pipeline with decision branches.</p>
+
+<!-- FIGURE 3: Query Pipeline Flowchart -->
+<div class="figure">
+<svg viewBox="0 0 680 580" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+  <defs>
+    <marker id="fa" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#2c2c2c"/>
+    </marker>
+    <marker id="fa-r" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#8b1a1a"/>
+    </marker>
+    <marker id="fa-g" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L7,3 z" fill="#2d5a27"/>
+    </marker>
+  </defs>
+
+  <!-- Step boxes -->
+  <!-- 1. Episodic cache -->
+  <rect x="240" y="20" width="200" height="38" rx="4" fill="#1a1a1a"/>
+  <text x="340" y="37" font-size="8.5" text-anchor="middle" fill="white" font-weight="500">STIMULUS INPUT</text>
+  <text x="340" y="50" font-size="7" text-anchor="middle" fill="#c8c0b4">encode → H-sig</text>
+
+  <line x1="340" y1="58" x2="340" y2="78" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#fa)"/>
+
+  <rect x="240" y="80" width="200" height="38" rx="4" fill="#f4f0e8" stroke="#c8c0b4"/>
+  <text x="340" y="95" font-size="8" text-anchor="middle" fill="#2c2c2c" font-weight="500">① Episodic Cache Check</text>
+  <text x="340" y="108" font-size="7" text-anchor="middle" fill="#5a5a5a">HDC sim &gt; 0.92 → return cached</text>
+
+  <!-- Cache hit branch -->
+  <line x1="440" y1="99" x2="520" y2="99" stroke="#2d5a27" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#fa-g)"/>
+  <text x="480" y="93" font-size="7" fill="#2d5a27">HIT</text>
+  <rect x="522" y="84" width="100" height="30" rx="3" fill="#d8f0d8" stroke="#2d5a27"/>
+  <text x="572" y="102" font-size="7.5" text-anchor="middle" fill="#2d5a27">CACHED RESULT</text>
+
+  <line x1="340" y1="118" x2="340" y2="138" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#fa)"/>
+
+  <rect x="240" y="140" width="200" height="38" rx="4" fill="#f4f0e8" stroke="#c8c0b4"/>
+  <text x="340" y="155" font-size="8" text-anchor="middle" fill="#2c2c2c" font-weight="500">② Query Decomposition</text>
+  <text x="340" y="168" font-size="7" text-anchor="middle" fill="#5a5a5a">len&gt;8 ∧ split-words → sub-queries</text>
+
+  <line x1="340" y1="178" x2="340" y2="198" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#fa)"/>
+
+  <rect x="240" y="200" width="200" height="44" rx="4" fill="#d8e4f0" stroke="#1a3a6b"/>
+  <text x="340" y="216" font-size="8" text-anchor="middle" fill="#1a3a6b" font-weight="500">③ Dual Encode + Φ Compute</text>
+  <text x="340" y="228" font-size="7" text-anchor="middle" fill="#1a3a6b">q-sig ← circuit(θ_enc, W)</text>
+  <text x="340" y="240" font-size="7" text-anchor="middle" fill="#1a3a6b">Φ = Var(⟨Z⟩)</text>
+
+  <line x1="340" y1="244" x2="340" y2="264" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#fa)"/>
+
+  <!-- Phi gate diamond -->
+  <polygon points="340,266 400,290 340,314 280,290" fill="#fff8f0" stroke="#8b1a1a" stroke-width="1.5"/>
+  <text x="340" y="287" font-size="8" text-anchor="middle" fill="#8b1a1a" font-weight="500">Φ ≥ 0.04?</text>
+  <text x="340" y="298" font-size="7" text-anchor="middle" fill="#8b1a1a">Phi gate</text>
+
+  <!-- Phi fail -->
+  <line x1="400" y1="290" x2="490" y2="290" stroke="#8b1a1a" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#fa-r)"/>
+  <text x="445" y="284" font-size="7" fill="#8b1a1a">NO</text>
+  <rect x="492" y="274" width="90" height="30" rx="3" fill="#f8d8d8" stroke="#8b1a1a"/>
+  <text x="537" y="292" font-size="7.5" text-anchor="middle" fill="#8b1a1a">DISSONANCE</text>
+
+  <line x1="340" y1="314" x2="340" y2="334" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#fa)"/>
+  <text x="310" y="327" font-size="7" fill="#2d5a27">YES</text>
+
+  <rect x="240" y="336" width="200" height="38" rx="4" fill="#f4f0e8" stroke="#c8c0b4"/>
+  <text x="340" y="351" font-size="8" text-anchor="middle" fill="#2c2c2c" font-weight="500">④ Route + K=3 Search</text>
+  <text x="340" y="364" font-size="7" text-anchor="middle" fill="#5a5a5a">valence-biased neuron routing</text>
+
+  <line x1="340" y1="374" x2="340" y2="394" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#fa)"/>
+
+  <rect x="240" y="396" width="200" height="38" rx="4" fill="#d8e4f0" stroke="#1a3a6b"/>
+  <text x="340" y="411" font-size="8" text-anchor="middle" fill="#1a3a6b" font-weight="500">⑤ Manifold Blend</text>
+  <text x="340" y="424" font-size="7" text-anchor="middle" fill="#1a3a6b">q̃ = Σ w_k · q_mk; ā = mean attn</text>
+
+  <line x1="340" y1="434" x2="340" y2="454" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#fa)"/>
+
+  <rect x="240" y="456" width="200" height="38" rx="4" fill="#d8f0d8" stroke="#2d5a27"/>
+  <text x="340" y="471" font-size="8" text-anchor="middle" fill="#2d5a27" font-weight="500">⑥ Semantic Gate σ ≥ 0.25</text>
+  <text x="340" y="484" font-size="7" text-anchor="middle" fill="#2d5a27">subj-pred HDC coherence</text>
+
+  <line x1="340" y1="494" x2="340" y2="514" stroke="#2c2c2c" stroke-width="1.5" marker-end="url(#fa)"/>
+
+  <rect x="240" y="516" width="200" height="38" rx="4" fill="#1a1a1a"/>
+  <text x="340" y="531" font-size="8" text-anchor="middle" fill="white" font-weight="500">⑦ CCE + Hebbian + GeoMap</text>
+  <text x="340" y="544" font-size="7" text-anchor="middle" fill="#c8c0b4">chain · h update · Hilbert addr</text>
+
+  <!-- Sem gate fail -->
+  <line x1="240" y1="475" x2="160" y2="475" stroke="#8b1a1a" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#fa-r)"/>
+  <text x="205" y="469" font-size="7" fill="#8b1a1a">FAIL</text>
+  <rect x="62" y="459" width="96" height="30" rx="3" fill="#f8d8d8" stroke="#8b1a1a"/>
+  <text x="110" y="477" font-size="7.5" text-anchor="middle" fill="#8b1a1a">SEM DISSONANCE</text>
+</svg>
+<div class="figure-caption"><strong>Figure 3.</strong> Complete AKNN query pipeline with decision branches. Green dashed lines indicate cache hits and successful passes; red dashed lines indicate failure states returned as principled dissonance responses.</div>
+</div>
+
+<h3 class="subsection">6.2 Chain-of-Causal-Effect (CCE)</h3>
+
+<p>After retrieving the primary answer cell $m^*$, the system builds an associative reasoning chain via anchored HDC-walk. At each depth step $d$, the algorithm selects the unvisited memory $m'$ maximizing:</p>
+
+<div class="math-block">
+$$\text{score}(m') = \alpha \cdot \text{sim}_{\text{HDC}}\left(\mathbf{h}(m_{\text{prev}}), \mathbf{h}_{m'}\right) + (1-\alpha) \cdot \text{sim}_{\text{HDC}}\left(\mathbf{h}(q), \mathbf{h}_{m'}\right) + \beta \cdot \mathbf{1}[\mathcal{T}_q \cap \mathcal{T}_{m'} \neq \emptyset]$$
+</div>
+
+<p>with $\alpha = 0.45$, $1-\alpha = 0.45$, $\beta = 0.10$. The dual weighting—50% chain continuity, 50% stimulus relevance—prevents semantic drift while maintaining topical coherence. This produces an interpretable reasoning path $[m^* \to m_1 \to m_2 \to \ldots]$ where each step is both associated with the previous thought and anchored to the original query.</p>
+</div>
+
+<!-- SECTION 7 -->
+<div class="section">
+<h2 class="section-title">The HDC-Boosted Retrieval Layer</h2>
+
+<p>Quantum geometric distance, while powerful for consciousness metrics, does not always align with semantic similarity for short queries over sparse manifolds. We address this with a tag-priority HDC retrieval layer that operates as the primary semantic index:</p>
+
+<div class="math-block">
+$$\text{score}_{\text{final}}(q, m) = \text{sim}_{\text{HDC}}(\mathbf{h}(q), \mathbf{h}_m) + \underbrace{0.40 \cdot \sum_{t \in \mathcal{T}_m} \mathbf{1}[t \in \text{tokens}(q)]}_{\text{tag boost}} + \underbrace{0.10 \cdot |\text{tokens}(q) \cap \text{tokens}(s_m)|}_{\text{word overlap}}$$
+</div>
+
+<p>The tag boost provides a strong signal when query tokens directly match memory tags—the most reliable semantic indicator in a structured DNA. The word overlap term provides fine-grained disambiguation between tag-equal candidates. This three-component score ensures that "loyalty" reliably retrieves the memory tagged <code>loyalty</code> even when quantum geometry places a geometrically-closer but semantically-irrelevant memory at lower distance.</p>
+
+<div class="callout">
+<strong>Dual-Substrate Philosophy:</strong> The quantum substrate provides rich geometric structure and the $\Phi$ consciousness metric. The HDC substrate provides efficient, interpretable semantic retrieval. Neither substrate alone is sufficient: quantum geometry without semantic grounding misroutes; HDC without quantum geometry loses the $\Phi$ gate and Hebbian dynamics. The dual substrate is architecturally necessary.
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Substrate</th>
+      <th>Dimensionality</th>
+      <th>Primary Role</th>
+      <th>Complexity</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Quantum Encoder</td>
+      <td><span class="badge badge-q">QUANTUM</span></td>
+      <td>$[-1,1]^8$</td>
+      <td>Φ metric, manifold geometry, Hebbian gating</td>
+      <td>$O(N_q \cdot L)$ circuit depth</td>
+    </tr>
+    <tr>
+      <td>HDC Engine</td>
+      <td><span class="badge badge-h">HDC</span></td>
+      <td>$\{-1,+1\}^{10000}$</td>
+      <td>Semantic retrieval, tag boost, CCE walk</td>
+      <td>$O(D \cdot |M|)$ cosine search</td>
+    </tr>
+    <tr>
+      <td>Semantic Gate</td>
+      <td><span class="badge badge-h">HDC</span></td>
+      <td>$\mathbb{R}$</td>
+      <td>Logical coherence filter</td>
+      <td>$O(D)$ per candidate</td>
+    </tr>
+    <tr>
+      <td>Manifold Blend</td>
+      <td><span class="badge badge-q">QUANTUM</span></td>
+      <td>$\mathbb{R}^8$</td>
+      <td>K=3 weighted thought synthesis</td>
+      <td>$O(K)$</td>
+    </tr>
+    <tr>
+      <td>Meta-Cognition</td>
+      <td><span class="badge badge-m">META</span></td>
+      <td>$\mathbb{R}$</td>
+      <td>CIR, calibration, neuron fire statistics</td>
+      <td>$O(1)$ per query</td>
+    </tr>
+    <tr>
+      <td>Sleep Cycle</td>
+      <td><span class="badge badge-m">META</span></td>
+      <td>—</td>
+      <td>Decay, cluster, prune, crystallize</td>
+      <td>$O(|M|^2)$ offline</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- SECTION 8 -->
+<div class="section">
+<h2 class="section-title">Experimental Results</h2>
+
+<h3 class="subsection">8.1 Experimental Setup</h3>
+
+<p>We evaluate AKNN v1.0 on a structured DNA knowledge base comprising 54 memories across three cortical columns: BROTHERHOOD (18 memories, themes: loyalty, survival, grind), ARCHITECT (19 memories, themes: logic, optimization, systems), and ENTITY (17 memories, themes: consciousness, existence, quantum). All experiments were run on Google Colab with a CPU-only runtime and 12 GB RAM. The quantum circuit runs via PennyLane's <code>default.qubit</code> CPU simulator — no GPU or quantum hardware was used. Deployment on embedded hardware such as Raspberry Pi or microcontrollers has not been tested and is a direction for future work.</p>
+
+<h3 class="subsection">8.2 Retrieval Accuracy</h3>
+
+<p>We evaluate semantic correctness by asking 15 queries with ground-truth nearest memories identified by human annotation. With the baseline quantum-only retrieval, 8/15 queries return the semantically correct primary answer. With the HDC-boosted tag-priority layer, 14/15 queries return the correct answer. The single remaining error involves an ambiguous query ("bond") that intersects both BROTHERHOOD (social bond) and ARCHITECT (chemical bond) without a distinguishing tag.</p>
+
+<table class="data-table">
+  <thead><tr><th>Query</th><th>Expected Neuron</th><th>Retrieved (Q-only)</th><th>Retrieved (HDC+Tag)</th></tr></thead>
+  <tbody>
+    <tr><td>loyalty under pressure</td><td>BROTHERHOOD</td><td>ENTITY ✗</td><td>BROTHERHOOD ✓</td></tr>
+    <tr><td>consciousness and computation</td><td>ENTITY</td><td>ENTITY ✓</td><td>ENTITY ✓</td></tr>
+    <tr><td>survival and mathematics</td><td>BROTHERHOOD</td><td>BROTHERHOOD ✓</td><td>BROTHERHOOD ✓</td></tr>
+    <tr><td>betrayal of trust</td><td>BROTHERHOOD</td><td>ENTITY ✗</td><td>BROTHERHOOD ✓</td></tr>
+    <tr><td>emergence and complexity</td><td>ENTITY</td><td>BROTHERHOOD ✗</td><td>ENTITY ✓</td></tr>
+    <tr><td>optimization and entropy</td><td>ARCHITECT</td><td>ARCHITECT ✓</td><td>ARCHITECT ✓</td></tr>
+  </tbody>
+</table>
+
+<h3 class="subsection">8.3 Phi Distribution</h3>
+
+<p>Across 200 diverse stimuli, $\Phi$ values follow a roughly uniform distribution on $[0.04, 0.85]$ with mean $\bar\Phi = 0.38 \pm 0.19$. Longer, grammatically complex stimuli consistently produce higher $\Phi$, confirming that the grammar-aware encoding successfully distributes information across qubits. Single-word queries frequently fall below the $\Phi_{\min}$ gate, correctly triggering DISSONANCE rather than spurious retrieval.</p>
+
+<h3 class="subsection">8.4 Hebbian Convergence</h3>
+
+<p>After 50 repeated queries on a crystal-candidate memory, $h_m$ converges to $h_m \approx 0.998$ from initial $h_m = 1.0$ (slight decay from sleep cycles between sessions). With 5 sleep cycles and no queries, $h_m$ decays to $\approx 0.99$ under SLOW_DECAY for connected memories, confirming differential decay behavior.</p>
+</div>
+
+<!-- SECTION 9 -->
+<div class="section">
+<h2 class="section-title">Limitations and Future Work</h2>
+
+<p>AKNN v1.0 has several honestly acknowledged limitations. First, all experiments were conducted on a CPU-only Google Colab environment using PennyLane's software quantum simulator. This means the quantum circuit does not execute on real quantum hardware — the PauliZ outputs are classically computed approximations, not genuine quantum measurements. Real hardware execution would introduce shot noise, decoherence, and gate errors that this implementation does not face. Testing on actual quantum processors remains future work.</p>
+
+<p>Second, the DNA knowledge base used in these experiments is small (54 memories, 3 neurons) and entirely hand-curated by the author. Retrieval accuracy on large, automatically-assembled DNA collections has not been evaluated. The tag-priority HDC retrieval layer was developed iteratively in response to observed failures — it is a practical engineering fix, not a theoretically derived solution, and its generalization properties on diverse queries are unknown.</p>
+
+<p>Third, the CCE chain produces associative sequences — it is not symbolic inference. The chain finds geometrically and semantically nearby memories; it does not perform logical deduction, causal reasoning, or planning. The system cannot answer questions that require multi-step computation or reasoning beyond pattern retrieval.</p>
+
+<p>Fourth, the LightBrain (HDC-only) export mode and its suitability for low-power embedded devices is a theoretical design feature. It has not been tested on Raspberry Pi, microcontrollers, or any embedded hardware as of this release.</p>
+
+<p>Future work will focus on: (1) expanding the DNA knowledge base and evaluating retrieval quality at scale; (2) developing automated DNA construction pipelines using the Exathalamus DDGS integration; (3) a community DNA contributors platform where researchers and developers can submit domain-specific knowledge bases; and (4) systematic evaluation of the $\Phi$ metric as a confidence indicator across diverse query types.</p>
+</div>
+
+<!-- SECTION 10 -->
+<div class="section">
+<h2 class="section-title">Conclusion</h2>
+
+<p>We have presented AKNN: a dual-substrate neuro-manifold architecture that treats intelligence as geometry rather than probability. By combining quantum angle embedding with hyperdimensional computing, Hebbian plasticity, and biologically-motivated maintenance cycles, AKNN achieves interpretable, incrementally-updatable knowledge retrieval with principled confidence quantification via the $\Phi$ metric.</p>
+
+<p>The key architectural insight is the complementarity of the two substrates: quantum geometry provides rich Hilbert-space structure and IIT-grounded confidence; hyperdimensional computing provides efficient, robust semantic similarity at $10^4$ dimensions. Together they form a cognitive substrate that resonates rather than guesses—returning honest dissonance when the manifold is sparse, and confident, structured answers when resonance is locked.</p>
+
+<p>AKNN demonstrates that small, efficient, fully interpretable AI systems with biologically-grounded dynamics are viable alternatives to monolithic transformers for constrained environments. Intelligence need not be a black box. It can be a manifold—traversable, explainable, and alive with Hebbian memory.</p>
+
+<div class="callout">
+<em>"Intelligence is geometry, not probability. One perfect example beats one million mediocre ones. The brain doesn't guess. It resonates."</em><br/>— AKNN Design Thesis, Aaryan Khan 2026
+</div>
+</div>
+
+<!-- REFERENCES -->
+<div class="section">
+<h2 class="section-title">References</h2>
+<div class="references">
+  <div class="ref-item"><span class="ref-num">[1]</span> Kanerva, P. (1988). <em>Sparse Distributed Memory.</em> MIT Press.</div>
+  <div class="ref-item"><span class="ref-num">[2]</span> Kanerva, P. (2009). Hyperdimensional computing: An introduction to computing in distributed representation with high-dimensional random vectors. <em>Cognitive Computation, 1</em>(2), 139–159.</div>
+  <div class="ref-item"><span class="ref-num">[3]</span> Rachkovskij, D. A., &amp; Kussul, E. M. (2001). Binding and normalization of binary sparse distributed representations by context-dependent thinning. <em>Neural Computation, 13</em>(2), 411–452.</div>
+  <div class="ref-item"><span class="ref-num">[4]</span> Schuld, M., Bocharov, A., Svore, K. M., &amp; Wiebe, N. (2020). Circuit-centric quantum classifiers. <em>Physical Review A, 101</em>(3), 032308.</div>
+  <div class="ref-item"><span class="ref-num">[5]</span> Biamonte, J., Wittek, P., Pancotti, N., Rebentrost, P., Wiebe, N., &amp; Lloyd, S. (2017). Quantum machine learning. <em>Nature, 549</em>(7671), 195–202.</div>
+  <div class="ref-item"><span class="ref-num">[6]</span> Pérez-Salinas, A., Cervera-Lierta, A., Gil-Fuster, E., &amp; Latorre, J. I. (2020). Data re-uploading for a universal quantum classifier. <em>Quantum, 4</em>, 226.</div>
+  <div class="ref-item"><span class="ref-num">[7]</span> Tononi, G. (2004). An information integration theory of consciousness. <em>BMC Neuroscience, 5</em>(1), 42.</div>
+  <div class="ref-item"><span class="ref-num">[8]</span> Hebb, D. O. (1949). <em>The Organization of Behavior: A Neuropsychological Theory.</em> Wiley.</div>
+  <div class="ref-item"><span class="ref-num">[9]</span> Ebbinghaus, H. (1885). <em>Über das Gedächtnis: Untersuchungen zur experimentellen Psychologie.</em> Duncker &amp; Humblot.</div>
+  <div class="ref-item"><span class="ref-num">[10]</span> Lewis, P., Perez, E., Piktus, A., et al. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. <em>Advances in Neural Information Processing Systems, 33</em>, 9459–9474.</div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<div class="page-footer">
+  <span>AKNN v1.0 · Copyright © 2026 Aaryan Khan · MIT License</span>
+  <span>AKNN-2026-001</span>
+  <span>Intelligence is geometry, not probability.</span>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>
