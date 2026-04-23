@@ -37,7 +37,7 @@ The full academic paper for AKNN — including all formal mathematics, SVG archi
 
 > **AKNN: A Dual-Substrate Neuro-Manifold Architecture for Associative Knowledge Retrieval**
 > Aaryan Khan · Independent Researcher · 2026
-> 📄 Preprint: [link coming soon — follow @Khan_Aaryan_ for publication]
+> 📄 Preprint: [https://zenodo.org/records/19696620]
 
 The paper covers every mathematical operation in AKNN (encoding, Φ metric, K-blend, Hebbian update, CCE, neurogenesis) with full formal notation and three custom SVG diagrams. The HTML version with MathJax rendering is also included in this repository as `research_paper.html`.
 
